@@ -1,0 +1,267 @@
+/*　後から読み込ませたいstyleのみ記載　*/
+.um {
+    color: #222;
+}
+
+.um-field-block {
+    color: #222;
+}
+
+.um input[type=submit].um-button,
+.um input[type=submit].um-button:focus,
+.um a.um-button,
+.um a.um-button.um-disabled:hover,
+.um a.um-button.um-disabled:focus,
+.um a.um-button.um-disabled:active {
+    background: #222;
+}
+
+.um input[type=submit].um-button:hover,
+.um a.um-button:hover {
+    background-color: #555555;
+}
+
+/*
+//会員登録
+*/
+
+.um-icon-help-circled::before {
+    color: #222;
+}
+
+.um-field-label label {
+    color: #222;
+}
+
+.um span.um-req {
+    color: #D6016B;
+}
+
+input#um-submit-btn {
+    background: #222222;
+}
+
+input#um-submit-btn:hover {
+    background: #555;
+}
+
+.um-field-checkbox-option,
+.um-field-radio-option {
+    color: #222 !important;
+}
+
+.um-field-checkbox-state i,
+.um-field-radio-state i {
+    color: #222;
+}
+
+a.um-link-alt {
+    color: #222 !important;
+}
+
+.um-dropdown-b ul li::marker {
+    content: "";
+}
+
+.um-dropdown-b ul li a:hover {
+    color: #F99746 !important;
+}
+
+
+/*
+//マイページ
+*/
+.um-profile-edit {
+    display: none;
+}
+
+body.page-template-profile div.site-body {
+    padding-top: 0px;
+}
+
+body.page-template-profile .um-header {
+    border: none;
+    padding: 0;
+    margin-top: 30px;
+}
+
+body.page-template-profile .um-main-meta {
+    margin-top: 1rem;
+}
+
+body.page-template-profile .um-profile.um-viewing .um-field-label {
+    display: block;
+    width: 100%;
+    border-bottom: 1px solid #222;
+    margin: 0;
+    padding: 0 0 15px 0;
+    text-align: center;
+}
+
+body.page-template-profile .um-field-label {
+    display: block;
+    width: 100%;
+    border-bottom: 1px solid #222;
+    margin: 0;
+    padding: 0 0 15px 0;
+    text-align: center;
+}
+
+body.page-template-profile .um-col-1 {
+    border-top: 1px solid #222;
+}
+
+body.page-template-profile .um-field {
+    display: flex;
+    gap: 20px;
+    padding: 15px 0;
+    border-bottom: 1px solid #222;
+    flex-direction: column;
+    align-items: center;
+}
+
+.um-profile-nav {
+    background: transparent;
+    margin-bottom: 2rem;
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+i.um-faicon-cog {
+    color: #222;
+}
+
+.um .um-profile-nav-item a {
+    color: #222 !important;
+    border: 1px solid #222 !important;
+}
+
+.um .um-profile-nav-item a:hover {
+    color: #fff !important;
+    background: #555;
+}
+
+.um .um-profile-nav-item.active a {
+    color: #fff !important;
+    background: #222;
+}
+
+.um .um-profile-nav-item.active a:hover {
+    color: #fff !important;
+    background: #222;
+}
+
+
+
+@media(min-width: 769px) {
+
+    body.page-template-profile .um-main-meta {
+        margin-top: 0;
+    }
+
+    body.page-template-profile .um-profile-nav {
+        margin-top: 0;
+    }
+
+    body.page-template-profile .um-field {
+        gap: 30px;
+        padding: 20px 0;
+        border-bottom: 1px solid #222;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    body.page-template-profile .um-profile.um-viewing .um-field-label {
+        width: 30%;
+        border-bottom: none;
+        padding: 0;
+        text-align: start;
+    }
+
+    body.page-template-profile .um-field-label {
+        width: 30%;
+        border-bottom: none;
+        padding: 0;
+        text-align: start;
+    }
+
+    body.page-template-profile .um-field-area {
+        width: 100%;
+    }
+
+}
+
+/*
+//アカウント設定ページ
+*/
+
+.um-account-nav {
+    background: #222;
+    padding: 0 0 0 15px;
+}
+
+.um-account-nav a {
+    color: #fff !important;
+    border-bottom: none !important;
+    margin-bottom: 10px;
+}
+
+.um-account-name {
+    margin-bottom: 20px;
+}
+
+div.uimob340 .um-account-tab {
+    border: none;
+}
+
+.um-account-profile-link {
+    border: 1px solid #222;
+    border-radius: 5px;
+    width: fit-content;
+    padding: 5px 30px;
+    margin: 20px auto;
+}
+
+.um-account-profile-link a,
+.um a.um-link:hover,
+.um a.um-link-hvr:hover {
+    color: #222;
+}
+
+@media(min-width: 769px) {
+    .um-account-side ul li::marker {
+        content: "";
+    }
+
+    .um-account-side.uimob340-hide.uimob500-hide {
+        background: #222;
+        padding: 20px;
+    }
+
+    .um-account-name.uimob800-hide a {
+        color: #fff !important;
+    }
+
+    .um-account-profile-link {
+        border: 1px solid #fff;
+    }
+
+    .um-account-icon i::before {
+        display: block;
+        color: #FE833F;
+        width: 20px;
+        height: 30px;
+        line-height: 30px;
+    }
+
+    .um-account-tab {
+        width: auto;
+        margin-left: 20px;
+    }
+}
+
+#um_field_0_confirm_user_password input::placeholder {
+    /* 新しいプレースホルダーテキスト */
+    content: "新しいプレースホルダーテキスト";
+}
