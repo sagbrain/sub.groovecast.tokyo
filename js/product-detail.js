@@ -91,8 +91,10 @@
     }
 
     function anchor(url, label) {
-        return '<a href="' + esc(url) + '" target="_blank" rel="noopener">'
-            + esc(label) + '</a>';
+        // The theme drops link underlines inside the item text, which leaves the
+        // label reading as plain text — underline it so it is visibly a link out.
+        return '<a href="' + esc(url) + '" target="_blank" rel="noopener"'
+            + ' style="text-decoration:underline;">' + esc(label) + '</a>';
     }
 
     function linksHtml(detail) {
