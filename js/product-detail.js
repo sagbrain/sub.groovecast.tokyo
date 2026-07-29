@@ -3,13 +3,10 @@
  *
  * The 商品情報 spreadsheet is the single source of truth. BASE's 商品詳細を
  * カスタマイズ App content cannot be read or written through the BASE API, so
- * links pasted there by hand go stale (or 404) with no way to fix them in code.
- * This script reconciles the rendered item page against the sheet-derived
- * products_detail.json:
- *
- *   1. YouTube links inside handmade content are repointed at the sheet's 音源URL
- *   2. sheet links the page does not already show are appended as a links section
- *   3. items with no handmade content get the full auto-rendered detail
+ * anything pasted there by hand — YouTube links, 許諾番号 — goes stale with no
+ * way to fix it in code. This script therefore renders the whole detail
+ * (曲説明・楽曲情報・編成・参考音源リンク・許諾表示・コピーライト) from the
+ * sheet-derived products_detail.json and hides the handmade block.
  *
  * The BASE theme loads this from sub.groovecast.tokyo so that logic changes ship
  * with a git push instead of a theme paste.
@@ -18,10 +15,20 @@
     'use strict';
 
     var DATA_URL = 'https://sub.groovecast.tokyo/data/products_detail.json';
-    var CUSTOM_BLOCK = '.shop-item-text:not(.purchase-flow):not(.product-detail-auto)';
-    var YOUTUBE_URL = /^https?:\/\/(?:[\w-]+\.)*(?:youtube\.com|youtu\.be|youtube-nocookie\.com)\//i;
+    var HANDMADE_BLOCK = '.shop-item-text:not(.purchase-flow):not(.product-detail-auto)';
     // The theme CSS zeroes <p> margins, so space the sections inline.
     var P = '<p style="margin:1.6em 0 0;">';
+    // 管理団体マーク — the same files the site footer shows.
+    var MARKS = {
+        'JASRAC': 'https://basefile.akamaized.net/groovecast-official-ec/64e851b9cf1d5/jasrac.jpg',
+        'NexTone': 'https://basefile.akamaized.net/groovecast-official-ec/64e851d1ae418/verified_pict.png'
+    };
+    var MARK_STYLE = 'width:72px;height:auto;display:block;margin:0.4em 0;';
+    // Fallback only: the sheet spells the wording out per item (参考音源の表記).
+    var DEFAULT_LINKS = {
+        heading: '参考音源・解説(外部サイト)',
+        labels: ['参考音源を聴く', '解説動画を見る']
+    };
 
     function itemIdFromPath() {
         var m = location.pathname.match(/items\/(\d+)/);
@@ -38,60 +45,10 @@
         return esc(text).replace(/\n/g, '<br>');
     }
 
-    function handmadeBlocks() {
-        var found = [];
-        var blocks = document.querySelectorAll(CUSTOM_BLOCK);
+    function setHidden(blocks, hidden) {
         for (var i = 0; i < blocks.length; i++) {
-            // The customize App renders an empty block (hidden input only) for
-            // items without handmade content — count only blocks with real text.
-            if (blocks[i].textContent.trim().length > 0) {
-                found.push(blocks[i]);
-            }
+            blocks[i].style.display = hidden ? 'none' : '';
         }
-        return found;
-    }
-
-    /**
-     * Repoint handmade YouTube links at the sheet, and report which URLs the
-     * page already shows so the links section below does not duplicate them.
-     */
-    function reconcileLinks(blocks, detail) {
-        var shown = {};
-        for (var i = 0; i < blocks.length; i++) {
-            var anchors = blocks[i].getElementsByTagName('a');
-            for (var j = 0; j < anchors.length; j++) {
-                var anchor = anchors[j];
-                if (!YOUTUBE_URL.test(anchor.getAttribute('href') || '')) {
-                    continue;
-                }
-                if (detail.audio_url) {
-                    // The admin pastes the bare URL as the link text as well, so
-                    // the visible text has to move with the href.
-                    if (YOUTUBE_URL.test(anchor.textContent.trim())) {
-                        anchor.textContent = detail.audio_url;
-                    }
-                    anchor.setAttribute('href', detail.audio_url);
-                }
-                shown[anchor.getAttribute('href')] = true;
-            }
-        }
-        return shown;
-    }
-
-    function linksHtml(detail, shown) {
-        var parts = [];
-        if (detail.audio_url && !shown[detail.audio_url]) {
-            parts.push('<a href="' + esc(detail.audio_url)
-                + '" target="_blank" rel="noopener">デモ音源を聴く</a>');
-        }
-        if (detail.video_url && !shown[detail.video_url]) {
-            parts.push('<a href="' + esc(detail.video_url)
-                + '" target="_blank" rel="noopener">解説動画を見る</a>');
-        }
-        if (!parts.length) {
-            return '';
-        }
-        return P + '<strong>【デモ音源・解説】</strong><br>' + parts.join('　') + '</p>';
     }
 
     function detailHtml(detail) {
@@ -118,20 +75,80 @@
         return html;
     }
 
+    /** Read 「【見出し】文言　文言」 as written in the sheet's 参考音源の表記 cell. */
+    function linkWording(text) {
+        var parsed = /^【([^】]+)】([\s\S]*)$/.exec((text || '').trim());
+        if (!parsed) {
+            return DEFAULT_LINKS;
+        }
+        var labels = parsed[2].split(/\s+/).filter(function (label) {
+            return label.length > 0;
+        });
+        return {
+            heading: parsed[1],
+            labels: labels.length ? labels : DEFAULT_LINKS.labels
+        };
+    }
+
+    function anchor(url, label) {
+        return '<a href="' + esc(url) + '" target="_blank" rel="noopener">'
+            + esc(label) + '</a>';
+    }
+
+    function linksHtml(detail) {
+        var wording = linkWording(detail.link_labels);
+        var parts = [];
+        if (detail.audio_url) {
+            parts.push(anchor(detail.audio_url, wording.labels[0]));
+        }
+        if (detail.video_url) {
+            parts.push(anchor(detail.video_url, wording.labels[1] || DEFAULT_LINKS.labels[1]));
+        }
+        if (!parts.length) {
+            return '';
+        }
+        return P + '<strong>【' + esc(wording.heading) + '】</strong><br>'
+            + parts.join('　') + '</p>';
+    }
+
+    function licenseHtml(detail) {
+        if (!detail.license_no) {
+            return '';
+        }
+        var org = detail.copyright_org;
+        // JASRAC writes its licence number as 第…号; NexTone uses the bare ID.
+        var number = org === 'JASRAC' ? '第' + detail.license_no + '号' : detail.license_no;
+        var html = P + '<strong>【許諾表示】</strong><br>';
+        if (MARKS[org]) {
+            html += '<img src="' + MARKS[org] + '" alt="' + esc(org)
+                + '" style="' + MARK_STYLE + '">';
+        }
+        return html + esc(org) + '許諾番号　' + esc(number) + '</p>';
+    }
+
+    function copyrightHtml(detail) {
+        if (!detail.copyright_text) {
+            return '';
+        }
+        return P + '<strong>【コピーライト】</strong><br>'
+            + nl2br(detail.copyright_text) + '</p>';
+    }
+
+    /** Render from the sheet; false means the page is left as BASE rendered it. */
     function render(detail) {
-        var blocks = handmadeBlocks();
-        var shown = reconcileLinks(blocks, detail);
-        // Handmade content already carries 曲説明・編成 etc.; only links are missing.
-        var html = (blocks.length ? '' : detailHtml(detail)) + linksHtml(detail, shown);
-        if (!html) {
-            return;
+        // Take the page over only when the sheet holds the full record —
+        // otherwise the handmade block is still the only copy of 曲説明・編成.
+        if (!detail.description || !detail.instrumentation) {
+            return false;
         }
         var target = document.getElementById('autoItemDetail');
         if (!target) {
-            return;
+            return false;
         }
-        target.innerHTML = html;
+        target.innerHTML = detailHtml(detail) + linksHtml(detail)
+            + licenseHtml(detail) + copyrightHtml(detail);
         target.style.display = '';
+        return true;
     }
 
     function start() {
@@ -139,17 +156,23 @@
         if (!itemId) {
             return;
         }
+        // Hide first so the stale hand-pasted 許諾番号 never flashes up; the block
+        // comes back if the sheet turns out not to stand in for it.
+        var blocks = document.querySelectorAll(HANDMADE_BLOCK);
+        setHidden(blocks, true);
         fetch(DATA_URL, { cache: 'no-cache' })
             .then(function (response) {
                 return response.ok ? response.json() : null;
             })
             .then(function (data) {
                 var detail = data && data[itemId];
-                if (detail) {
-                    render(detail);
+                if (!detail || !render(detail)) {
+                    setHidden(blocks, false);
                 }
             })
-            .catch(function () {});
+            .catch(function () {
+                setHidden(blocks, false);
+            });
     }
 
     if (document.readyState === 'loading') {
